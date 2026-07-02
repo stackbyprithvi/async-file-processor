@@ -12,3 +12,11 @@ export async function createJob({ id, fileKey, status }) {
 
   return result.rows[0];
 }
+
+export async function findJobByIdRepo(id) {
+  const query = `
+  SELECT * FROM jobs WHERE id=$1
+  `;
+  const result = await pool.query(query, [id]);
+  return result.rows[0];
+}

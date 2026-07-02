@@ -16,3 +16,9 @@ export async function downloadFile(fileKey) {
     });
   });
 }
+
+export async function uploadFile({ fileKey, buffer, mimeType }) {
+  await minio.putObject(process.env.MINIO_BUCKET, fileKey, buffer, {
+    "Content-Type": mimeType || "application/octet-stream",
+  });
+}
