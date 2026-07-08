@@ -1,4 +1,19 @@
 services:
+  worker:
+    build:
+      context: ./worker
+      dockerfile: container/Dockerfile
+    volumes:
+      - ./worker:/app
+      - /app/node_modules
+    depends_on:
+      - redis
+      - postgres
+      - minio
+    environment:
+      REDIS_HOST: redis
+      POSTGRES_HOST: postgres
+      MINIO_ENDPOINT: minio
   postgres:
     image: postgres:16
     container_name: fp-postgres

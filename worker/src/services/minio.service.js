@@ -1,4 +1,4 @@
-import minio from ".././config/minio.js";
+import minio from "../config/minio.js";
 import "dotenv/config";
 
 export async function downloadFile(fileKey) {

@@ -1,12 +1,13 @@
 import { connection } from "./config/redis.js";
 import { Worker } from "bullmq";
-import { updateJobStatus } from "./repositories/job.repository.js";
-import { downloadFile, uploadFile } from "./services/storage.service.js";
-import { socket } from "./config/socket.js";
+import { updateJobStatus, findJobById } from "./repositories/job.repository.js";
+import { downloadFile, uploadFile } from "./services/minio.service.js";
+import { publisher } from "./config/redisPublisher.js";
 
 const worker = new Worker(
   "file-processing",
   async (job) => {
+    console.log("🔥 GOT JOB", job.id, job.data);
     const { jobId, fileKey } = job.data;
     try {
       await updateJobStatus({
@@ -14,6 +15,10 @@ const worker = new Worker(
         status: "processing",
         errorMessage: null,
       });
+
+      const processingJob = await findJobById(jobId);
+
+      await publisher.publish("job-events", JSON.stringify(processingJob));
 
       const buffer = await downloadFile(fileKey);
       const content = buffer.toString("utf-8");
@@ -31,17 +36,16 @@ const worker = new Worker(
 
       await updateJobStatus({
         id: jobId,
-        status: "success",
+        status: "completed",
         errorMessage: null,
+        processedKey,
       });
 
-      console.log("Socket connected?", socket.connected);
-      socket.emit("job-completed", {
-        jobId,
-        status: "success",
-      });
+      const completedJob = await findJobById(jobId);
 
-      console.log("Job completed:", jobId);
+      await publisher.publish("job-events", JSON.stringify(completedJob));
+
+      // console.log("Job completed:", jobId);
     } catch (err) {
       await updateJobStatus({
         id: jobId,
@@ -56,12 +60,19 @@ const worker = new Worker(
   },
 );
 
-// worker.on("completed", (job) => {
-//   console.log(`Job ${job.id} completed`);
-// });
+worker.on("completed", (job) => {
+  console.log(`Job ${job.id} completed`);
+});
 
-// worker.on("failed", (job, err) => {
-//   console.error(`Job ${job?.id} failed`, err);
-// });
+worker.on("failed", (job, err) => {
+  console.error(`Job ${job?.id} failed`, err);
+});
+connection.on("ready", () => {
+  console.log("✅ Redis Ready");
+});
+
+connection.on("error", (err) => {
+  console.error(err);
+});
 
 console.log("🚀 Worker is listening...");

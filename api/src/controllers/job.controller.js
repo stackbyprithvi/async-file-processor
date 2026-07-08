@@ -26,7 +26,12 @@ export async function upload(req, res) {
       mimeType: req.file.mimetype,
     });
 
-    const job = await createJob({ id: jobId, fileKey, status: "queued" });
+    const job = await createJob({
+      id: jobId,
+      fileKey,
+      fileName: req.file.originalname,
+      status: "queued",
+    });
 
     await enqueueJob({ jobId, fileKey });
 

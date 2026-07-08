@@ -1,12 +1,12 @@
 import pool from ".././config/db.js";
 
-export async function createJob({ id, fileKey, status }) {
+export async function createJob({ id, fileKey, fileName, status }) {
   const query = `
-    INSERT INTO jobs (id, file_key, status)
-    VALUES ($1, $2, $3)
+    INSERT INTO jobs (id, file_key, file_name, status)
+    VALUES ($1, $2, $3, $4)
     RETURNING *;
   `;
-  const values = [id, fileKey, status];
+  const values = [id, fileKey, fileName, status];
 
   const result = await pool.query(query, values);
 
