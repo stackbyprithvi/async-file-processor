@@ -1,13 +1,28 @@
 import { connection } from "./config/redis.js";
 import { Worker } from "bullmq";
-import { updateJobStatus } from "./repositories/job.repository.js";
-import { downloadFile, uploadFile } from "./services/storage.service.js";
-import { socket } from "./config/socket.js";
+import { updateJobStatus, findJobById } from "./repositories/job.repository.js";
+import { downloadFile, uploadFile } from "./services/minio.service.js";
+import { publisher } from "./config/redisPublisher.js";
+import { runFFmpeg } from "./services/ffmpeg.service.js";
+import path from "path";
+import fs from "fs/promises";
 
 const worker = new Worker(
   "file-processing",
   async (job) => {
     const { jobId, fileKey } = job.data;
+    const extension = path.extname(fileKey);
+    const inputPath = path.join(
+      process.cwd(),
+      "temp",
+      `job-${jobId}-input${extension}`,
+    );
+    const outputPath = path.join(
+      process.cwd(),
+      "temp",
+      `job-${jobId}-output.mp4`,
+    );
+
     try {
       await updateJobStatus({
         id: jobId,
@@ -15,33 +30,34 @@ const worker = new Worker(
         errorMessage: null,
       });
 
-      const buffer = await downloadFile(fileKey);
-      const content = buffer.toString("utf-8");
+      const processingJob = await findJobById(jobId);
 
-      const processedContent = content.toUpperCase();
-      const processedBuffer = Buffer.from(processedContent);
+      await publisher.publish("job-events", JSON.stringify(processingJob));
+
+      await downloadFile(fileKey, inputPath);
+
+      await runFFmpeg(inputPath, outputPath);
+      console.log("✅ FFmpeg finished");
 
       const processedKey = `processed/${fileKey}`;
 
       await uploadFile({
         fileKey: processedKey,
-        buffer: processedBuffer,
-        mimeType: "text/plain",
+        outputPath,
+        mimeType: "video/mp4",
       });
 
       await updateJobStatus({
         id: jobId,
-        status: "success",
+        status: "completed",
         errorMessage: null,
+        processedKey,
       });
 
-      console.log("Socket connected?", socket.connected);
-      socket.emit("job-completed", {
-        jobId,
-        status: "success",
-      });
+      const completedJob = await findJobById(jobId);
+      await publisher.publish("job-events", JSON.stringify(completedJob));
 
-      console.log("Job completed:", jobId);
+      // console.log("Job completed:", jobId);
     } catch (err) {
       await updateJobStatus({
         id: jobId,
@@ -49,6 +65,14 @@ const worker = new Worker(
         errorMessage: err.message,
       });
       console.error("Job failed:", err);
+    } finally {
+      try {
+        await fs.unlink(inputPath);
+      } catch {}
+
+      try {
+        await fs.unlink(outputPath);
+      } catch {}
     }
   },
   {
@@ -56,12 +80,19 @@ const worker = new Worker(
   },
 );
 
-// worker.on("completed", (job) => {
-//   console.log(`Job ${job.id} completed`);
-// });
+worker.on("completed", (job) => {
+  console.log(`Job ${job.id} completed`);
+});
 
-// worker.on("failed", (job, err) => {
-//   console.error(`Job ${job?.id} failed`, err);
-// });
+worker.on("failed", (job, err) => {
+  console.error(`Job ${job?.id} failed`, err);
+});
+connection.on("ready", () => {
+  console.log("✅ Redis Ready");
+});
+
+connection.on("error", (err) => {
+  console.error(err);
+});
 
 console.log("🚀 Worker is listening...");
