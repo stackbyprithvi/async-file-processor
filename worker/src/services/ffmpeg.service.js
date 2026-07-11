@@ -1,5 +1,4 @@
 import { spawn } from "child_process";
-import { resolve } from "dns";
 
 export async function runFFmpeg(inputPath, outputPath) {
   return new Promise((resolve, reject) => {
