@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" RENAME COLUMN "processed_key " TO "processed_key";

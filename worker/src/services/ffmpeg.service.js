@@ -2,19 +2,34 @@ import { spawn } from "child_process";
 
 export async function runFFmpeg(inputPath, outputPath) {
   return new Promise((resolve, reject) => {
-    const ffmpeg = spawn("ffmpeg", ["-i", inputPath, outputPath]);
+    const ffmpeg = spawn("ffmpeg", [
+      "-i",
+      inputPath,
+      "-c:v",
+      "libx264",
+      "-preset",
+      "medium",
+      "-crf",
+      "23",
+      "-c:a",
+      "aac",
+      outputPath,
+    ]);
 
-    // Print FFmpeg logs (very useful while learning)
+    let stderr = "";
+
     ffmpeg.stderr.on("data", (data) => {
-      console.log(data.toString());
+      const message = data.toString();
+
+      stderr += message; // save error
+      // console.log(message);
     });
 
-    // FFmpeg finished
     ffmpeg.on("close", (code) => {
       if (code === 0) {
         resolve();
       } else {
-        reject(new Error(`FFmpeg exited with code ${code}`));
+        reject(new Error(`FFmpeg failed:\n${stderr}`));
       }
     });
 

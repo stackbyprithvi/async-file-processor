@@ -15,6 +15,7 @@ services:
       REDIS_HOST: redis
       POSTGRES_HOST: postgres
       MINIO_ENDPOINT: minio
+
   postgres:
     image: postgres:16
     container_name: fp-pro-postgres

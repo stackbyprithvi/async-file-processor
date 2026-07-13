@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" ALTER COLUMN "processed_key" DROP NOT NULL;

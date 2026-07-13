@@ -1,0 +1,62 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1783769436642,
+      "tag": "0000_flaky_whistler",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783788407632,
+      "tag": "0001_boring_blacklash",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783789439403,
+      "tag": "0002_glossy_reptil",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1783790117078,
+      "tag": "0003_public_pete_wisdom",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1783790326174,
+      "tag": "0004_legal_tyger_tiger",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783790548904,
+      "tag": "0005_strange_matthew_murdock",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783790670035,
+      "tag": "0006_wandering_eddie_brock",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1783924640993,
+      "tag": "0007_colossal_molecule_man",
+      "breakpoints": true
+    }
+  ]
+}
