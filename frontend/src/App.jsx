@@ -12,6 +12,7 @@ function App() {
 
   useEffect(() => {
     const handleJobUpdate = (updatedJob) => {
+      console.log("JOB UPDATE:", updatedJob);
       setJob(updatedJob);
     };
 

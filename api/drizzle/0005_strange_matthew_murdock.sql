@@ -1,0 +1,1 @@
+ALTER TABLE "jobs" RENAME COLUMN "error_messaage" TO "error_message";

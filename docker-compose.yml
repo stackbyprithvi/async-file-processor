@@ -1,5 +1,6 @@
 services:
   worker:
+    container_name: fp-pro-worker
     build:
       context: ./worker
       dockerfile: container/Dockerfile
@@ -14,30 +15,31 @@ services:
       REDIS_HOST: redis
       POSTGRES_HOST: postgres
       MINIO_ENDPOINT: minio
+
   postgres:
     image: postgres:16
-    container_name: fp-postgres
+    container_name: fp-pro-postgres
 
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: file_processor
+      POSTGRES_DB: advanced_file_processor
 
     ports:
       - "5433:5432"
 
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - fp-pro-postgres-data:/var/lib/postgresql/data
 
   redis:
     image: redis:7-alpine
-    container_name: fp-redis
+    container_name: fp-pro-redis
     ports:
       - "6379:6379"
 
   redis-insight:
     image: redis/redisinsight:latest
-    container_name: fp-redis-insight
+    container_name: fp-pro-redis-insight
     ports:
       - "5540:5540"
     depends_on:
@@ -45,7 +47,7 @@ services:
 
   minio:
     image: minio/minio
-    container_name: fp-minio
+    container_name: fp-pro-minio
     command: server /data --console-address ":9001"
     environment:
       MINIO_ROOT_USER: admin
@@ -54,8 +56,8 @@ services:
       - "9000:9000"
       - "9001:9001"
     volumes:
-      - minio-data:/data
+      - fp-pro-minio-data:/data
 
 volumes:
-  minio-data:
-  postgres-data:
+  fp-pro-minio-data:
+  fp-pro-postgres-data:
